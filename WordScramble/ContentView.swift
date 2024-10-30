@@ -11,6 +11,7 @@ struct ContentView: View {
     @State private var usedWords = [String]()
     @State private var rootWord = ""
     @State private var newWord = ""
+    @State private var score = 0
     
     @State private var errorTitle = ""
     @State private var errorMessage = ""
@@ -33,6 +34,26 @@ struct ContentView: View {
                     }
                 }
             }
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("New Word") {
+                        startGame()
+                    }
+                }
+                
+                ToolbarItem(placement: .principal) {
+                    Image(systemName: "keyboard")
+                }
+                
+                ToolbarItem(placement: .topBarLeading) {
+                    Text("Score: \(score)")
+                        .font(.headline)
+                }
+                
+            }
+            
+            .scrollContentBackground(.hidden)
+            .background(.yellow.gradient)
             .navigationTitle(rootWord)
             .onSubmit(addNewWord)
             .onAppear(perform: startGame)
@@ -42,10 +63,17 @@ struct ContentView: View {
         }
     }
     
+        
+    
     func addNewWord() {
         let answer = newWord.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
         
         guard answer.count > 0 else { return }
+        
+        guard isNotRootWord(word: answer) else {
+            wordError(title: "Starting word not allowed", message: "Try being a little more creative.")
+            return
+        }
         
         guard isOriginal(word: answer) else {
             wordError(title: "Word used already", message: "Be more original!")
@@ -53,7 +81,7 @@ struct ContentView: View {
         }
         
         guard isPossible(word: answer) else {
-            wordError(title: "Word not possible", message: "You can't spell that word from '\(rootWord)'")
+            wordError(title: "Word not possible", message: "You can't spell that word from '\(rootWord)'.")
             return
         }
         
@@ -66,6 +94,7 @@ struct ContentView: View {
             usedWords.insert(answer, at: 0)
         }
         
+        score = score + answer.count
         newWord = ""
     }
     
@@ -79,6 +108,10 @@ struct ContentView: View {
         }
         
         fatalError("Could not load start.txt from bundle.")
+    }
+    
+    func isNotRootWord(word: String) -> Bool {
+        word != rootWord
     }
     
     func isOriginal(word: String) -> Bool {
