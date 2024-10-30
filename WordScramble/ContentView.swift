@@ -38,6 +38,8 @@ struct ContentView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("New Word") {
                         startGame()
+                        score = 0
+                        usedWords.removeAll()
                     }
                 }
                 
@@ -94,13 +96,13 @@ struct ContentView: View {
             usedWords.insert(answer, at: 0)
         }
         
-        score = score + answer.count
+        score = calculateScore(answer.count)
         newWord = ""
     }
     
     func startGame() {
         if let startWordsURL = Bundle.main.url(forResource: "start", withExtension: "txt") {
-            if let startWords = try? String(contentsOf: startWordsURL) {
+            if let startWords = try? String(contentsOf: startWordsURL, encoding: .ascii) {
                 let allWords = startWords.components(separatedBy: "\n")
                 rootWord = allWords.randomElement() ?? "silkworm"
                 return
@@ -108,6 +110,19 @@ struct ContentView: View {
         }
         
         fatalError("Could not load start.txt from bundle.")
+    }
+    
+    func calculateScore(_ letterCount: Int) -> Int {
+        switch letterCount {
+        case 4...5:
+            return score + (letterCount + 2)
+        case 6...7:
+            return score + (letterCount + 3)
+        case 8...:
+            return score + (letterCount * 2)
+        default:
+            return score + letterCount
+        }
     }
     
     func isNotRootWord(word: String) -> Bool {
